@@ -1,11 +1,14 @@
 import kotlin.math.abs
 
-fun parseInput(input: List<String>): Pair<List<Int>, List<Int>> = input.map {
-    it.split("   ")
-        .let { it[0].toInt() to it[1].toInt() }
-}.unzip()
-
 fun main() {
+    fun parseInput(input: List<String>): Pair<List<Int>, List<Int>> = input
+        .map {
+            it.split("   ").let {
+                it[0].toInt() to it[1].toInt()
+            }
+        }
+        .unzip()
+
     fun part1(input: List<String>): Int {
         val (left, right) = parseInput(input)
         val sortedInput = left.sorted().zip(right.sorted())
