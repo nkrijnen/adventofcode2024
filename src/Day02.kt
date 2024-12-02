@@ -21,8 +21,8 @@ private class Report(private val levels: List<Int>) {
     fun isSafeWithDampener(): Boolean {
         if (isSafe()) return true;
 
-        val dampenerVariants = (0..levels.size - 1).map { dropIndex ->
-            levels.filterIndexed { index, _ -> index != dropIndex }
+        val dampenerVariants = (0..levels.size - 1).map { index ->
+            levels.dropIndex(index)
         }
         return dampenerVariants.any { Report(it).isSafe() }
     }
@@ -30,6 +30,8 @@ private class Report(private val levels: List<Int>) {
     override fun toString() =
         levels.joinToString(" ") + " safe: " + isSafe() + " | with dampener: " + isSafeWithDampener()
 }
+
+private fun <E> List<E>.dropIndex(indexToDrop: Int) = filterIndexed { index, _ -> index != indexToDrop }
 
 fun main() {
     fun parseInputLine(input: String): Report = Report(input.split(" ").map { it.toInt() })
