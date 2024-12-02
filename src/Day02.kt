@@ -1,33 +1,30 @@
 private class Report(private val levels: List<Int>) {
     fun isSafe(): Boolean {
-        return firstUnsafeNumberIndex() == null
+        var level = levels[0]
+        val ascending = level < levels[1];
+        for (nextLevel in levels.subList(1, levels.size)) {
+            if (nextLevel == level)
+                return false
+            if (ascending && nextLevel < level)
+                return false
+            if (!ascending && nextLevel > level)
+                return false
+            if (nextLevel > level + 3)
+                return false
+            if (nextLevel < level - 3)
+                return false
+            level = nextLevel
+        }
+        return true
     }
 
     fun isSafeWithDampener(): Boolean {
-        val firstUnsafeNumberIndex = firstUnsafeNumberIndex()
-        if (firstUnsafeNumberIndex == null) {
-            return true
-        }
-        return Report(levels.filterIndexed { index, _ -> index != firstUnsafeNumberIndex }).isSafe()
-    }
+        if (isSafe()) return true;
 
-    private fun firstUnsafeNumberIndex(): Int? {
-        var level = levels[0]
-        val ascending = level < levels[1];
-        for ((index, nextLevel) in levels.subList(1, levels.size).withIndex()) {
-            if (nextLevel == level)
-                return index + 1
-            if (ascending && nextLevel < level)
-                return index + 1
-            if (!ascending && nextLevel > level)
-                return index + 1
-            if (nextLevel > level + 3)
-                return index + 1
-            if (nextLevel < level - 3)
-                return index + 1
-            level = nextLevel
+        val dampenerVariants = (0..levels.size - 1).map { dropIndex ->
+            levels.filterIndexed { index, _ -> index != dropIndex }
         }
-        return null
+        return dampenerVariants.any { Report(it).isSafe() }
     }
 
     override fun toString() =
