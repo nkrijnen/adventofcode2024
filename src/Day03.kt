@@ -1,12 +1,10 @@
-import kotlin.math.abs
-
 fun main() {
     fun parseInput(input: List<String>): String = input.joinToString("")
 
     val mulPattern = "mul\\((\\d{1,3}),(\\d{1,3})\\)".toRegex()
     val mulAndDoPattern = "mul\\((\\d{1,3}),(\\d{1,3})\\)|do\\(\\)|don't\\(\\)".toRegex()
 
-    fun part1(input: String):Int =
+    fun part1(input: String): Int =
         mulPattern.findAll(input)
             .map { it.groupValues[1].toInt() * it.groupValues[2].toInt() }
             .sum()
