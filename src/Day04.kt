@@ -1,5 +1,8 @@
-class XMASPatternFinder(private val grid: List<String>, private val wordToFind: String = "XMAS") {
-    private val firstChar: Char = wordToFind[0]
+class XMASPatternFinder(
+    private val grid: List<String>,
+    private val wordToFind: String = "XMAS",
+    private val searchChar: Char = wordToFind[0]
+) {
     private val wordLength: Int = wordToFind.length
     private val width: Int = grid.first().length
     private val height: Int = grid.size
@@ -8,10 +11,10 @@ class XMASPatternFinder(private val grid: List<String>, private val wordToFind: 
         println("grid size: $width x $height")
     }
 
-    fun findFirstChar(): List<Coordinate> {
+    fun findWordCoordinates(): List<Coordinate> {
         return grid.flatMapIndexed { y: Int, row: String ->
             row.mapIndexedNotNull { x: Int, char: Char ->
-                if (char == firstChar) Coordinate(x, y)
+                if (char == searchChar) Coordinate(x, y)
                 else null
             }
         }
@@ -25,7 +28,7 @@ class XMASPatternFinder(private val grid: List<String>, private val wordToFind: 
 
         internal fun char(): Char = grid[y][x]
 
-        fun possibleWordPatterns(): List<CoordinateSet> {
+        fun possibleStarPatterns(): List<CoordinateSet> {
             return listOf(
                 east(),
                 west(),
@@ -48,10 +51,42 @@ class XMASPatternFinder(private val grid: List<String>, private val wordToFind: 
         private fun southWest() = CoordinateSet { delta -> Coordinate(x - delta, y + delta) }
         private fun northEast() = CoordinateSet { delta -> Coordinate(x + delta, y - delta) }
         private fun northWest() = CoordinateSet { delta -> Coordinate(x - delta, y - delta) }
+
+        fun isCrossPattern(): Boolean {
+            return listOf(
+                listOf(
+                    nwToSe(),
+                    swToNe(),
+                ),
+                listOf(
+                    neToSw(),
+                    seToNw(),
+                ),
+                listOf(
+                    neToSw(),
+                    nwToSe(),
+                ),
+                listOf(
+                    swToNe(),
+                    seToNw(),
+                ),
+            ).any { it.filterNotNull().count { it.toString() == wordToFind } == 2 }
+        }
+
+        private fun nwToSe() = CoordinateCross { delta -> Coordinate(x + delta, y + delta) }
+        private fun neToSw() = CoordinateCross { delta -> Coordinate(x - delta, y + delta) }
+        private fun swToNe() = CoordinateCross { delta -> Coordinate(x + delta, y - delta) }
+        private fun seToNw() = CoordinateCross { delta -> Coordinate(x - delta, y - delta) }
     }
 
     private fun CoordinateSet(coordinateWithDelta: (Int) -> Coordinate): CoordinateSet? = try {
         CoordinateSet((0..wordLength - 1).map { delta -> coordinateWithDelta(delta) })
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
+    private fun CoordinateCross(coordinateWithDelta: (Int) -> Coordinate): CoordinateSet? = try {
+        CoordinateSet((-1..1).map { delta -> coordinateWithDelta(delta) })
     } catch (e: IllegalArgumentException) {
         null
     }
@@ -63,22 +98,23 @@ class XMASPatternFinder(private val grid: List<String>, private val wordToFind: 
 
 fun main() {
     fun part1(input: List<String>): Int {
-        return XMASPatternFinder(input).findFirstChar()
-            .flatMap { it.possibleWordPatterns() }
+        return XMASPatternFinder(input).findWordCoordinates()
+            .flatMap { it.possibleStarPatterns() }
             .count()
 //            .map { it.toString() }
 //            .println()
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        return XMASPatternFinder(input, "MAS", 'A').findWordCoordinates()
+            .count { it.isCrossPattern() }
     }
 
     val testInput = readInput("Day04_test")
     check(part1(testInput) == 18)
-//    check(part2(testInput) == 4)
+    check(part2(testInput) == 9)
 
     val input = readInput("Day04")
     part1(input).println()
-//    part2(input).println()
+    part2(input).println()
 }
