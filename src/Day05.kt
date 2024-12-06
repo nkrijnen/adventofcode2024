@@ -8,16 +8,20 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val rules = Rules(input)
+        val updates = Updates(input)
+
+        val invalidUpdates = updates.onlyInValid(rules)
+        return invalidUpdates.sumOf { it.correctOrdering(rules).middleNumber() }
     }
 
     val testInput = readInput("Day05_test")
     check(part1(testInput) == 143)
-//    check(part2(testInput) == ?)
+    check(part2(testInput) == 123)
 
     val input = readInput("Day05")
     part1(input).println()
-//    part2(input).println()
+    part2(input).println()
 }
 
 class Rules(input: List<String>) {
@@ -28,6 +32,11 @@ class Rules(input: List<String>) {
     fun isValidOrdering(page: Int, laterPage: Int): Boolean {
         return rules.any { it.matches(page, laterPage) } ||
                 rules.all { !it.isForPages(page, laterPage) }
+    }
+
+    fun compare(page: Int, otherPage: Int): Int {
+        if (isValidOrdering(page, otherPage)) return -1
+        return 1
     }
 }
 
@@ -46,7 +55,9 @@ class Updates(input: List<String>) {
         .filter { it.contains(",") }
         .map { Update(it.split(",").map { it.toInt() }) }
 
-    fun onlyValid(rules: Rules): List<Update> = updates.filter { it.isValid(rules) }
+    fun onlyValid(rules: Rules) = updates.filter { it.isValid(rules) }
+
+    fun onlyInValid(rules: Rules) = updates.filter { !it.isValid(rules) }
 }
 
 class Update(private val pages: List<Int>) {
@@ -56,6 +67,8 @@ class Update(private val pages: List<Int>) {
         }
         return pageSets.all { (page, nextPage) -> rules.isValidOrdering(page, nextPage) }
     }
+
+    fun correctOrdering(rules: Rules) = Update(pages.sortedWith(rules::compare))
 
     fun middleNumber(): Int = pages[pages.size / 2]
 }
