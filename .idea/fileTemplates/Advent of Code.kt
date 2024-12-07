@@ -10,7 +10,11 @@ fun main() {
 
     check(part1(listOf("...")) == 1)
 
+    val testInput = readInput("Day${Day}_test")
+    check(part1(testInput) == ?)
+//    check(part2(testInput) == ?)
+
     val input = readInput("Day$Day")
     part1(input).println()
-    part2(input).println()
+//    part2(input).println()
 }
