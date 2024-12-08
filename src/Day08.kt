@@ -1,46 +1,16 @@
 fun main() {
     fun part1(input: List<String>): Int = CityMap(input).uniqueAntinodeLocations()
 
-    fun part2(input: List<String>): Int {
-        return input.size
-    }
-
-    check((Vector(2, 1) to Vector(3, 2)).antiNodes() == listOf(Vector(1, 0), Vector(4, 3)))
-    check((Vector(3, 0) to Vector(6, 0)).antiNodes() == listOf(Vector(0, 0), Vector(9, 0)))
-    check((Vector(3, 7) to Vector(6, 2)).antiNodes() == listOf(Vector(0, 12), Vector(9, -3)))
-
-    check(listOf(Vector(3, 7), Vector(6, 2), Vector(6, 2)).size == 3)
-    check(listOf(Vector(3, 7), Vector(6, 2), Vector(6, 2)).toSet().size == 2)
-
-//    stationCombinations(listOf(Station('a', Vector(1, 1)))).println()
-//    stationCombinations(listOf(Station('a', Vector(1, 1)), Station('b', Vector(2, 2)))).println()
-//    stationCombinations(
-//        listOf(
-//            Station('a', Vector(1, 1)),
-//            Station('b', Vector(2, 2)),
-//            Station('c', Vector(3, 3))
-//        )
-//    ).println()
-//    stationCombinations(
-//        listOf(
-//            Station('a', Vector(1, 1)),
-//            Station('b', Vector(2, 2)),
-//            Station('c', Vector(3, 3)),
-//            Station('d', Vector(6, 2))
-//        )
-//    ).println()
-//    check(stationCombinations(listOf(Station("a", Vector(1,1)))))
+    fun part2(input: List<String>): Int = CityMap(input).uniqueAntinodeLineLocations()
 
     val testInput = readInput("Day08_test")
-    check(CityMap(testInput).findStations().size == 7)
     check(part1(testInput) == 14)
-//    check(part2(testInput) == ?)
+    check(part2(testInput) == 34)
 
     val input = readInput("Day08")
     val part1result = part1(input)
-    check(part1result < 283)
     part1result.println()
-//    part2(input).println()
+    part2(input).println()
 }
 
 private class CityMap(private val grid: List<String>) {
@@ -52,8 +22,14 @@ private class CityMap(private val grid: List<String>) {
         val stationsByType = allStations.groupBy { it.type }
         val antiNodes = uniqueAntiNodes(stationsByType)
         val antiNodesWithinCity = antiNodes.filter { it.withinCityBounds() }.toSet()
-        println(antiNodes.size)
-        println(antiNodesWithinCity)
+        printWithOverlay(antiNodesWithinCity)
+        return antiNodesWithinCity.size
+    }
+
+    fun uniqueAntinodeLineLocations(): Int {
+        val allStations: List<Station> = findStations()
+        val stationsByType = allStations.groupBy { it.type }
+        val antiNodesWithinCity = uniqueAntiNodesOnLine(stationsByType)
         printWithOverlay(antiNodesWithinCity)
         return antiNodesWithinCity.size
     }
@@ -75,6 +51,30 @@ private class CityMap(private val grid: List<String>) {
             val antiNodes = stationCombinations.flatMap { it.locations().antiNodes() }
             antiNodes
         }.toSet()
+
+    private fun uniqueAntiNodesOnLine(stationsByType: Map<Char, List<Station>>) =
+        stationsByType.flatMap { (_, stations) ->
+            val stationCombinations = stationCombinations(stations)
+            val antiNodes = stationCombinations.flatMap { it.locations().antiNodesOnLine() }
+            antiNodes
+        }.toSet()
+
+    private fun Pair<Vector, Vector>.antiNodesOnLine(): List<Vector> {
+        val delta: Vector = first - second
+        val nodes = mutableListOf<Vector>(first)
+        while (true) {
+            val next = nodes.last() + delta
+            if (!next.withinCityBounds()) break
+            nodes.add(next)
+        }
+        nodes.add(second)
+        while (true) {
+            val next = nodes.last() - delta
+            if (!next.withinCityBounds()) break
+            nodes.add(next)
+        }
+        return nodes
+    }
 
     fun findStations(): List<Station> {
         return grid.flatMapIndexed { y: Int, row: String ->
