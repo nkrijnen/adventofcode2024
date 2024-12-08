@@ -9,6 +9,9 @@ fun main() {
     check((Vector(3, 0) to Vector(6, 0)).antiNodes() == listOf(Vector(0, 0), Vector(9, 0)))
     check((Vector(3, 7) to Vector(6, 2)).antiNodes() == listOf(Vector(0, 12), Vector(9, -3)))
 
+    check(listOf(Vector(3, 7), Vector(6, 2), Vector(6, 2)).size == 3)
+    check(listOf(Vector(3, 7), Vector(6, 2), Vector(6, 2)).toSet().size == 2)
+
 //    stationCombinations(listOf(Station('a', Vector(1, 1)))).println()
 //    stationCombinations(listOf(Station('a', Vector(1, 1)), Station('b', Vector(2, 2)))).println()
 //    stationCombinations(
@@ -48,9 +51,22 @@ private class CityMap(private val grid: List<String>) {
         val allStations: List<Station> = findStations()
         val stationsByType = allStations.groupBy { it.type }
         val antiNodes = uniqueAntiNodes(stationsByType)
-        val antiNodesWithinCity = antiNodes.filter { it.withinCityBounds() }
+        val antiNodesWithinCity = antiNodes.filter { it.withinCityBounds() }.toSet()
+        println(antiNodes.size)
         println(antiNodesWithinCity)
+        printWithOverlay(antiNodesWithinCity)
         return antiNodesWithinCity.size
+    }
+
+    private fun printWithOverlay(vectors: Set<Vector>) {
+        val overlay: List<String> = grid.mapIndexed { y, row ->
+            row.mapIndexed { x, c ->
+                if (c != '.' && vectors.contains(Vector(x, y))) '%'
+                else if (vectors.contains(Vector(x, y))) '#'
+                else c
+            }.joinToString("")
+        }
+        overlay.forEach { row -> row.println() }
     }
 
     private fun uniqueAntiNodes(stationsByType: Map<Char, List<Station>>) =
@@ -69,7 +85,7 @@ private class CityMap(private val grid: List<String>) {
         }
     }
 
-    fun Vector.withinCityBounds(): Boolean = x in 0..width && y in 0..height
+    fun Vector.withinCityBounds(): Boolean = x in 0..width - 1 && y in 0..height - 1
 }
 
 // a, b, c =  ab, ac,  bc
